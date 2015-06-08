@@ -81,7 +81,6 @@ namespace Telemetry
             this.pwmMotor2Bar = new Telemetry.VerticalProgressBar();
             this.pwmMotor1Bar = new Telemetry.VerticalProgressBar();
             this.datalog = new byte[32];
-            this.commandBox = new System.Windows.Forms.TextBox();
             this.sendButton = new System.Windows.Forms.Button();
             this.joystickTimer = new System.Windows.Forms.Timer(this.components);
             this.sendCommand = new System.Windows.Forms.Timer(this.components);
@@ -550,13 +549,6 @@ namespace Telemetry
             this.pwmMotor1Bar.TabIndex = 4;
             this.pwmMotor1Bar.Value = 62;
             // 
-            // commandBox
-            // 
-            this.commandBox.Location = new System.Drawing.Point(12, 623);
-            this.commandBox.Name = "commandBox";
-            this.commandBox.Size = new System.Drawing.Size(906, 31);
-            this.commandBox.TabIndex = 3;
-            // 
             // sendButton
             // 
             this.sendButton.Location = new System.Drawing.Point(924, 619);
@@ -730,7 +722,6 @@ namespace Telemetry
         ///OTHER VARIABLES!!!
 
         byte[] datalog;
-        private System.Windows.Forms.TextBox commandBox;
         private System.Windows.Forms.Button sendButton;
         private System.Windows.Forms.Timer joystickTimer;
         private System.Windows.Forms.Timer sendCommand;
