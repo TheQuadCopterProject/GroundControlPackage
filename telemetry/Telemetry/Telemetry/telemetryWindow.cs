@@ -411,7 +411,7 @@ namespace Telemetry
         int m3ToWrite;
         int m4ToWrite;
         int responsiveness = 6500; //responsiveness factor: the lower, the more responsive. Do not go below 2621 or over 8000. Default: 6553
-        string messageToSend;
+        byte[] messageToSend = new byte[5];
         int flightMode = 0; //0:cutoff  1:flight  2:slow shutdown
 
         private Joystick joystick;
@@ -551,9 +551,11 @@ namespace Telemetry
                 }
                 #endregion
 
-                messageToSend = m1ToWrite.ToString() + " " + m2ToWrite.ToString() + " " + m3ToWrite.ToString() + " " + m4ToWrite.ToString();
-
-                commandBox.Text = messageToSend;
+                messageToSend[0] = (byte)m1ToWrite;
+                messageToSend[1] = (byte)m2ToWrite;
+                messageToSend[2] = (byte)m3ToWrite;
+                messageToSend[3] = (byte)m4ToWrite;
+                messageToSend[4] = (byte)'\n';
 
                 responsivenessLabel.Text = "Responsiveness: " + responsiveness.ToString();
             }
@@ -581,7 +583,7 @@ namespace Telemetry
         {
             try
             {
-                mySerialPort.Write(messageToSend);
+                mySerialPort.Write(messageToSend, 0, messageToSend.Length);
             }
             catch
             {
