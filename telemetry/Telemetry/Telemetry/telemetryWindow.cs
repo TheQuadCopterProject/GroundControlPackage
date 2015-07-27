@@ -7,8 +7,11 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.IO;
+using System.IO.Ports;
 using System.Globalization;
 using ZedGraph;
+using System.Threading;
+using System.Diagnostics;
 using System.Management;
 
 namespace Telemetry
@@ -18,7 +21,6 @@ namespace Telemetry
         #region variables
         string[] serialValues;
         double currentTime = 0;
-        Form1 serialData = new Form1();
 
         PointPairList pwmMotor1 = new PointPairList();
         PointPairList pwmMotor2 = new PointPairList();
@@ -70,6 +72,16 @@ namespace Telemetry
             loadMotorData();
             loadPFD();
             updateTimer.Enabled = false;
+
+            try
+            {
+                joystick = new Joystick(this.Handle);
+                connectToJoystick(joystick);
+            }
+            catch
+            {
+                MessageBox.Show("No Joystick! Please restart after connecting.");
+            }
         }
 
         private void loadMotorData()
@@ -277,35 +289,43 @@ namespace Telemetry
 
         private void updateTimer_Tick(object sender, EventArgs e)
         {
-            
+            Debug.Print("updateTimre_");
             readValues();
-            motorData.Refresh();
-            motorData.GraphPane.XAxis.Scale.Max = currentTime + 10;
-            motorData.GraphPane.XAxis.Scale.Min = currentTime - 10;
-            loadPFD();
-            PFD.Refresh();
+            try
+            {
+                motorData.Refresh();
+                motorData.GraphPane.XAxis.Scale.Max = currentTime + 10;
+                motorData.GraphPane.XAxis.Scale.Min = currentTime - 10;
+                loadPFD();
+                PFD.Refresh();
 
-            currentTime = Math.Round(currentTime, 1);
-            label6.Text = currentTime.ToString();
-            currentTime = currentTime + 0.05f;
+                currentTime = Math.Round(currentTime, 1);
+                label6.Text = currentTime.ToString();
+                currentTime = currentTime + 0.05f;
 
-            pwmMotorUpperLimit.Add(currentTime + 35, 114);
-            pwmMotorLowerLimit.Add(currentTime + 35, 62);
-            updateTimer.Start();
+                pwmMotorUpperLimit.Add(currentTime + 35, 114);
+                pwmMotorLowerLimit.Add(currentTime + 35, 62);
+            }
+            catch
+            {
+
+            }
         }
 
         private void readValues()
         {
             try
             {
-                using (StreamReader reader = new StreamReader(pathBox.Text))
+                serialValues = new string[16];
+                for (int i = 0; i < 16; ++i)
                 {
-                    string indata = reader.ReadLine();
-                    serialValues = indata.Split(' ');
-
-                    reader.Close();
+                    byte[] vIncome = new byte[2];
+                    vIncome[1] = datalog[i*2];
+                    vIncome[0] = datalog[i * 2 + 1];
+                    serialValues[i] = BitConverter.ToInt16(vIncome, 0).ToString();
+                    Debug.Print("serialValue[" + i + "] = " + serialValues[i]);
                 }
-
+                serialOutput.Text = ConvertStringArrayToString (serialValues);
                 try
                 {
                     if (serialValues[7] == "0")
@@ -337,34 +357,22 @@ namespace Telemetry
 
                 }
 
-                pwm1Box.Text = serialValues[0];
-                pwm2Box.Text = serialValues[1];
-                pwm3Box.Text = serialValues[2];
-                pwm4Box.Text = serialValues[3];
-                xAccelBox.Text = serialValues[4];
-                yAccelBox.Text = serialValues[5];
-                zAccelBox.Text = serialValues[6];
-                rollBox.Text = serialValues[7];
+                pwm1Box.Text  = serialValues[0];
+                pwm2Box.Text  = serialValues[1];
+                pwm3Box.Text  = serialValues[2];
+                pwm4Box.Text  = serialValues[3];
+                xAccelBox.Text= serialValues[4];
+                yAccelBox.Text= serialValues[5];
+                zAccelBox.Text= serialValues[6];
+                rollBox.Text  = serialValues[7];
                 pitchBox.Text = serialValues[8];
-                hdgBox.Text = serialValues[9];
-                altBox.Text = serialValues[11];
-                temp1Box.Text = serialValues[12];
-                voltBox.Text = serialValues[13];
-
-                
-
-                /*hdgBox.Text = serialValues[6];
-                rollBox.Text = serialValues[4];
-                pitchBox.Text = serialValues[5];
-                //xAccelBox.Text = serialValues[5];
-                //yAccelBox.Text = serialValues[6];
-                //zAccelBox.Text = serialValues[7];
-                altBox.Text = serialValues[8];
-                //rpm1Box.Text = serialValues[14];
-                //rpm2Box.Text = serialValues[15];
-                //rpm3Box.Text = serialValues[16];
-                //rpm4Box.Text = serialValues[17];
-                temp1Box.Text = serialValues[9];*/
+                hdgBox.Text   = serialValues[9];
+                rpm1Box.Text  = serialValues[10];
+                rpm1Box.Text  = serialValues[11];
+                rpm1Box.Text  = serialValues[12];
+                rpm1Box.Text  = serialValues[13];
+                voltBox.Text  = serialValues[14];
+                altBox.Text   = serialValues[15];
             }
             catch
             {
@@ -380,12 +388,259 @@ namespace Telemetry
 
         private void connectButton_Click(object sender, EventArgs e)
         {
-            serialData.SerialConnectButton_Click(sender, e, comPortBox.Text);
+            Debug.Print("connectButton_CLick");
+            SerialConnectButton_Click(sender, e, comPortBox.Text);
+            updateTimer.Enabled = true;
+            updateTimer.Start();
         }
 
         private void button3_Click(object sender, EventArgs e)
         {
-            serialData.disconnect();
+            disconnect();
+            updateTimer.Stop();
         }
+
+        
+        ///OTHER FILE!!!!!!!!!!!!!!!!!!!!!
+
+
+        SerialPort mySerialPort;
+        byte[] indata;
+        int m1ToWrite;
+        int m2ToWrite;
+        int m3ToWrite;
+        int m4ToWrite;
+        int responsiveness = 6500; //responsiveness factor: the lower, the more responsive. Do not go below 2621 or over 8000. Default: 6553
+        string messageToSend;
+        int flightMode = 0; //0:cutoff  1:flight  2:slow shutdown
+
+        private Joystick joystick;
+        private bool[] joystickButtons;
+
+        private void DataReceivedHandler(object sender, SerialDataReceivedEventArgs e)
+        {
+            indata = Encoding.ASCII.GetBytes(mySerialPort.ReadExisting());
+            for (int i = 0; i < indata.Length; ++i)
+            {
+                Debug.Write(indata[i] + ".");
+            }
+            Debug.Print("");
+            mySerialPort.DiscardInBuffer();
+            if (indata.Length > 66)
+            {
+                int index;
+                for (index = indata.Length - 1; indata[index] != '\n'; --index) ;
+                Debug.Print("index: " + index);
+                int iD = 32;
+                for (int i = index - 1; i >= index - 32; --i)
+                {
+                    --iD;
+                    datalog[iD] = indata[i];
+                }
+                for (int i = 0; i < datalog.Length; ++i)
+                {
+                    Debug.Write(datalog[i]);
+                }
+                    Debug.Print("End of datalog");
+            }
+        }
+
+        private void connectToJoystick(Joystick joystick)
+        {
+            while (true)
+            {
+                string sticks = joystick.FindJoysticks();
+                if (sticks != null)
+                {
+                    if (joystick.AcquireJoystick(sticks))
+                    {
+                        enableTimer();
+                        break;
+                    }
+                }
+            }
+        }
+
+        private void joystickTimer_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                joystick.UpdateStatus();
+                joystickButtons = joystick.buttons;
+
+                # region decideAction
+                if (flightMode == 2)
+                {
+                    m1ToWrite = 0;
+                    m2ToWrite = 0;
+                    m3ToWrite = 0;
+                    m4ToWrite = 0;
+                }
+
+                if (flightMode == 1)
+                {
+                    #region calculate
+                    m1ToWrite = (((joystick.Zaxis - 65535) * -1) / 1260) + 62;
+                    m1ToWrite = m1ToWrite + ((joystick.Xaxis - 32768) / responsiveness);
+                    m1ToWrite = m1ToWrite + ((joystick.Yaxis - 32768) / responsiveness);
+                    m1ToWrite = m1ToWrite + ((joystick.Rotation - 32768) / responsiveness / 2);
+
+                    m2ToWrite = (((joystick.Zaxis - 65535) * -1) / 1260) + 62;
+                    m2ToWrite = m2ToWrite + ((joystick.Xaxis - 32768) * -1 / responsiveness);
+                    m2ToWrite = m2ToWrite + ((joystick.Yaxis - 32768) / responsiveness);
+                    m2ToWrite = m2ToWrite + ((joystick.Rotation - 32768) * -1 / responsiveness / 2);
+
+                    m3ToWrite = (((joystick.Zaxis - 65535) * -1) / 1260) + 62;
+                    m3ToWrite = m3ToWrite + ((joystick.Xaxis - 32768) / responsiveness);
+                    m3ToWrite = m3ToWrite + ((joystick.Yaxis - 32768) * -1 / responsiveness);
+                    m3ToWrite = m3ToWrite + ((joystick.Rotation - 32768) * -1 / responsiveness / 2);
+
+                    m4ToWrite = (((joystick.Zaxis - 65535) * -1) / 1260) + 62;
+                    m4ToWrite = m4ToWrite + ((joystick.Xaxis - 32768) * -1 / responsiveness);
+                    m4ToWrite = m4ToWrite + ((joystick.Yaxis - 32768) * -1 / responsiveness);
+                    m4ToWrite = m4ToWrite + ((joystick.Rotation - 32768) / responsiveness / 2);
+                    #endregion
+                }
+                if (flightMode == 0)
+                {
+                    m1ToWrite = 40;
+                    m2ToWrite = 40;
+                    m3ToWrite = 40;
+                    m4ToWrite = 40;
+                }
+                #endregion
+
+                #region get Buttons
+                for (int i = 0; i < joystickButtons.Length; i++)
+                {
+                    if (joystickButtons[i] == true)
+                    {
+                        if (i == 3)
+                        {
+                            flightMode = 2;
+                            m1ToWrite = 0;
+                            m2ToWrite = 0;
+                            m3ToWrite = 0;
+                            m4ToWrite = 0;
+
+                        }
+                        if (i == 2)
+                        {
+                            flightMode = 0;
+                            m1ToWrite = 40;
+                            m2ToWrite = 40;
+                            m3ToWrite = 40;
+                            m4ToWrite = 40;
+                        }
+
+                        if (i == 0)
+                        {
+                            flightMode = 1;
+                        }
+
+                        if (i == 5)
+                        {
+                            responsiveness = responsiveness - 100;
+                        }
+
+                        if (i == 6)
+                        {
+                            responsiveness = responsiveness + 100;
+                        }
+                    }
+                }
+                #endregion
+
+                int checksum = m1ToWrite + m2ToWrite + m3ToWrite + m4ToWrite;
+                messageToSend = m1ToWrite.ToString() + " " + m2ToWrite.ToString() + " " + m3ToWrite.ToString() + " " + m4ToWrite.ToString() + " " + checksum.ToString();
+                
+
+                commandBox.Text = messageToSend;
+
+                responsivenessLabel.Text = "Responsiveness: " + responsiveness.ToString();
+            }
+            catch
+            {
+                joystickTimer.Enabled = false;
+                connectToJoystick(joystick);
+            }
+        }
+
+        private void enableTimer()
+        {
+            if (this.InvokeRequired)
+            {
+                BeginInvoke(new ThreadStart(delegate()
+                {
+                    joystickTimer.Enabled = true;
+                }));
+            }
+            else
+                joystickTimer.Enabled = true;
+        }
+
+        private void sendCommand_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                mySerialPort.Write(messageToSend);
+            }
+            catch
+            {
+
+            }
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        public void SerialConnectButton_Click(object sender, EventArgs e, string port)
+        {
+            try
+            {
+                mySerialPort = new SerialPort(port);
+                mySerialPort.BaudRate = 115200;
+                mySerialPort.Parity = Parity.None;
+                mySerialPort.StopBits = StopBits.One;
+                mySerialPort.DataBits = 8;
+                mySerialPort.Handshake = Handshake.None;
+                mySerialPort.ReceivedBytesThreshold = 70;
+                mySerialPort.DataReceived += new SerialDataReceivedEventHandler(DataReceivedHandler);
+
+                mySerialPort.Open();
+                //ComPortBox.ReadOnly = true;
+                fileDirectory.ReadOnly = true;
+                SerialConnectButton.Enabled = false;
+
+                sendCommand.Enabled = true;
+                sendCommand.Start();
+            }
+            catch
+            {
+
+            }
+        }
+
+        internal void disconnect()
+        {
+            mySerialPort.Close();
+        }
+
+        static string ConvertStringArrayToString(string[] array)
+        {
+            //
+            // Concatenate all the elements into a StringBuilder.
+            //
+            StringBuilder builder = new StringBuilder();
+            foreach (string value in array)
+            {
+                builder.Append(value);
+                builder.Append('.');
+            }
+            return builder.ToString();
+        }
+
     }
 }

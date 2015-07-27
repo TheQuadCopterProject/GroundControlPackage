@@ -1,4 +1,4 @@
-﻿
+﻿using System.Diagnostics;
 
 namespace Telemetry
 {
@@ -33,9 +33,6 @@ namespace Telemetry
             this.components = new System.ComponentModel.Container();
             this.motorData = new ZedGraph.ZedGraphControl();
             this.updateTimer = new System.Windows.Forms.Timer(this.components);
-            this.label1 = new System.Windows.Forms.Label();
-            this.pathBox = new System.Windows.Forms.TextBox();
-            this.openButton = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
@@ -75,17 +72,23 @@ namespace Telemetry
             this.voltBox = new System.Windows.Forms.TextBox();
             this.label23 = new System.Windows.Forms.Label();
             this.PFD = new ZedGraph.ZedGraphControl();
-            this.label6 = new System.Windows.Forms.Label();
             this.connectButton = new System.Windows.Forms.Button();
             this.comPortBox = new System.Windows.Forms.TextBox();
             this.serialOutput = new System.Windows.Forms.Label();
-            this.button1 = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
             this.pwmMotor4Bar = new Telemetry.VerticalProgressBar();
             this.pwmMotor3Bar = new Telemetry.VerticalProgressBar();
             this.pwmMotor2Bar = new Telemetry.VerticalProgressBar();
             this.pwmMotor1Bar = new Telemetry.VerticalProgressBar();
+            this.datalog = new byte[32];
+            this.commandBox = new System.Windows.Forms.TextBox();
+            this.sendButton = new System.Windows.Forms.Button();
+            this.joystickTimer = new System.Windows.Forms.Timer(this.components);
+            this.sendCommand = new System.Windows.Forms.Timer(this.components);
+            this.SerialConnectButton = new System.Windows.Forms.Button();
+            this.fileDirectory = new System.Windows.Forms.TextBox();
+            this.responsivenessLabel = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // motorData
@@ -109,34 +112,6 @@ namespace Telemetry
             this.updateTimer.Enabled = true;
             this.updateTimer.Interval = 50;
             this.updateTimer.Tick += new System.EventHandler(this.updateTimer_Tick);
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 21);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(188, 25);
-            this.label1.TabIndex = 1;
-            this.label1.Text = "Path to Serial File:";
-            // 
-            // pathBox
-            // 
-            this.pathBox.Location = new System.Drawing.Point(206, 18);
-            this.pathBox.Name = "pathBox";
-            this.pathBox.Size = new System.Drawing.Size(697, 31);
-            this.pathBox.TabIndex = 2;
-            this.pathBox.Text = "C:\\\\QuadTemp\\\\Serial.txt";
-            // 
-            // openButton
-            // 
-            this.openButton.ForeColor = System.Drawing.Color.Red;
-            this.openButton.Location = new System.Drawing.Point(909, 18);
-            this.openButton.Name = "openButton";
-            this.openButton.Size = new System.Drawing.Size(126, 38);
-            this.openButton.TabIndex = 3;
-            this.openButton.Text = "Start";
-            this.openButton.UseVisualStyleBackColor = true;
-            this.openButton.Click += new System.EventHandler(this.openButton_Click);
             // 
             // label2
             // 
@@ -484,7 +459,7 @@ namespace Telemetry
             // 
             // PFD
             // 
-            this.PFD.Location = new System.Drawing.Point(39, 151);
+            this.PFD.Location = new System.Drawing.Point(32, 21);
             this.PFD.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
             this.PFD.Name = "PFD";
             this.PFD.ScrollGrace = 0D;
@@ -497,17 +472,9 @@ namespace Telemetry
             this.PFD.Size = new System.Drawing.Size(1020, 753);
             this.PFD.TabIndex = 47;
             // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(1481, 497);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(66, 25);
-            this.label6.TabIndex = 12;
-            this.label6.Text = "t(sec)";
-            // 
             // connectButton
             // 
+            this.connectButton.ForeColor = System.Drawing.Color.Black;
             this.connectButton.Location = new System.Drawing.Point(1087, 559);
             this.connectButton.Name = "connectButton";
             this.connectButton.Size = new System.Drawing.Size(114, 47);
@@ -532,26 +499,9 @@ namespace Telemetry
             this.serialOutput.TabIndex = 50;
             this.serialOutput.Text = "Data is displayed here!";
             // 
-            // button1
-            // 
-            this.button1.Location = new System.Drawing.Point(0, 0);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
-            this.button1.TabIndex = 51;
-            this.button1.Text = "button1";
-            this.button1.UseVisualStyleBackColor = true;
-            // 
-            // button2
-            // 
-            this.button2.Location = new System.Drawing.Point(0, 0);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(75, 23);
-            this.button2.TabIndex = 52;
-            this.button2.Text = "button2";
-            this.button2.UseVisualStyleBackColor = true;
-            // 
             // button3
             // 
+            this.button3.ForeColor = System.Drawing.Color.Black;
             this.button3.Location = new System.Drawing.Point(1088, 632);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(113, 38);
@@ -600,6 +550,66 @@ namespace Telemetry
             this.pwmMotor1Bar.TabIndex = 4;
             this.pwmMotor1Bar.Value = 62;
             // 
+            // commandBox
+            // 
+            this.commandBox.Location = new System.Drawing.Point(12, 623);
+            this.commandBox.Name = "commandBox";
+            this.commandBox.Size = new System.Drawing.Size(906, 31);
+            this.commandBox.TabIndex = 3;
+            // 
+            // sendButton
+            // 
+            this.sendButton.Location = new System.Drawing.Point(924, 619);
+            this.sendButton.Name = "sendButton";
+            this.sendButton.Size = new System.Drawing.Size(116, 38);
+            this.sendButton.TabIndex = 4;
+            this.sendButton.Text = "Send";
+            this.sendButton.UseVisualStyleBackColor = true;
+            this.sendButton.Click += new System.EventHandler(this.button3_Click);
+            // 
+            // joystickTimer
+            // 
+            this.joystickTimer.Interval = 20;
+            this.joystickTimer.Tick += new System.EventHandler(this.joystickTimer_Tick);
+            // 
+            // sendCommand
+            // 
+            this.sendCommand.Interval = 35;
+            this.sendCommand.Tick += new System.EventHandler(this.sendCommand_Tick);
+            // 
+            // SerialConnectButton
+            // 
+            this.SerialConnectButton.Location = new System.Drawing.Point(0, 0);
+            this.SerialConnectButton.Name = "SerialConnectButton";
+            this.SerialConnectButton.Size = new System.Drawing.Size(75, 23);
+            this.SerialConnectButton.TabIndex = 0;
+            // 
+            // fileDirectory
+            // 
+            this.fileDirectory.Location = new System.Drawing.Point(591, 669);
+            this.fileDirectory.Name = "fileDirectory";
+            this.fileDirectory.Size = new System.Drawing.Size(327, 31);
+            this.fileDirectory.TabIndex = 9;
+            this.fileDirectory.Text = "C:\\\\QuadTemp\\\\Serial.txt";
+            // 
+            // responsivenessLabel
+            // 
+            this.responsivenessLabel.AutoSize = true;
+            this.responsivenessLabel.Location = new System.Drawing.Point(12, 729);
+            this.responsivenessLabel.Name = "responsivenessLabel";
+            this.responsivenessLabel.Size = new System.Drawing.Size(177, 25);
+            this.responsivenessLabel.TabIndex = 11;
+            this.responsivenessLabel.Text = "Responsiveness:";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(1481, 497);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(66, 25);
+            this.label6.TabIndex = 12;
+            this.label6.Text = "t(sec)";
+            // 
             // telemetryWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(12F, 25F);
@@ -607,8 +617,6 @@ namespace Telemetry
             this.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.ClientSize = new System.Drawing.Size(2396, 1268);
             this.Controls.Add(this.button3);
-            this.Controls.Add(this.button2);
-            this.Controls.Add(this.button1);
             this.Controls.Add(this.serialOutput);
             this.Controls.Add(this.comPortBox);
             this.Controls.Add(this.connectButton);
@@ -656,9 +664,6 @@ namespace Telemetry
             this.Controls.Add(this.pwmMotor2Bar);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.pwmMotor1Bar);
-            this.Controls.Add(this.openButton);
-            this.Controls.Add(this.pathBox);
-            this.Controls.Add(this.label1);
             this.Controls.Add(this.motorData);
             this.ForeColor = System.Drawing.Color.LawnGreen;
             this.Name = "telemetryWindow";
@@ -673,9 +678,6 @@ namespace Telemetry
 
         private ZedGraph.ZedGraphControl motorData;
         public System.Windows.Forms.Timer updateTimer;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.TextBox pathBox;
-        private System.Windows.Forms.Button openButton;
         private VerticalProgressBar pwmMotor1Bar;
         private System.Windows.Forms.Label label2;
         private VerticalProgressBar pwmMotor2Bar;
@@ -719,13 +721,24 @@ namespace Telemetry
         private System.Windows.Forms.TextBox voltBox;
         private System.Windows.Forms.Label label23;
         private ZedGraph.ZedGraphControl PFD;
-        private System.Windows.Forms.Label label6;
         private System.Windows.Forms.Button connectButton;
         private System.Windows.Forms.TextBox comPortBox;
         private System.Windows.Forms.Label serialOutput;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button button3;
+
+
+        ///OTHER VARIABLES!!!
+
+        byte[] datalog;
+        private System.Windows.Forms.TextBox commandBox;
+        private System.Windows.Forms.Button sendButton;
+        private System.Windows.Forms.Timer joystickTimer;
+        private System.Windows.Forms.Timer sendCommand;
+        //private System.Windows.Forms.TextBox ComPortBox;
+        private System.Windows.Forms.Button SerialConnectButton;
+        private System.Windows.Forms.TextBox fileDirectory;
+        private System.Windows.Forms.Label responsivenessLabel;
+        private System.Windows.Forms.Label label6;
     }
 }
 

@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.DirectX.DirectInput;
 using System.Windows.Forms;
 using System;
+using System.Diagnostics;
 
 namespace Telemetry
 {
@@ -32,7 +33,7 @@ namespace Telemetry
         public string FindJoysticks()
         {
             systemJoysticks = null;
-
+        //    Debug.Print("FindJoysticks");
             try
             {
                 DeviceList gameControllerList = Manager.GetDevices(DeviceClass.GameControl, EnumDevicesFlags.AttachedOnly);
