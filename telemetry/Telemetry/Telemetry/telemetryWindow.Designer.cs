@@ -73,14 +73,8 @@ namespace Telemetry
             this.label23 = new System.Windows.Forms.Label();
             this.PFD = new ZedGraph.ZedGraphControl();
             this.connectButton = new System.Windows.Forms.Button();
-            this.comPortBox = new System.Windows.Forms.TextBox();
             this.serialOutput = new System.Windows.Forms.Label();
             this.button3 = new System.Windows.Forms.Button();
-            this.pwmMotor4Bar = new Telemetry.VerticalProgressBar();
-            this.pwmMotor3Bar = new Telemetry.VerticalProgressBar();
-            this.pwmMotor2Bar = new Telemetry.VerticalProgressBar();
-            this.pwmMotor1Bar = new Telemetry.VerticalProgressBar();
-            this.datalog = new byte[32];
             this.commandBox = new System.Windows.Forms.TextBox();
             this.sendButton = new System.Windows.Forms.Button();
             this.joystickTimer = new System.Windows.Forms.Timer(this.components);
@@ -89,6 +83,14 @@ namespace Telemetry
             this.fileDirectory = new System.Windows.Forms.TextBox();
             this.responsivenessLabel = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
+            this.responsivenessDisplay = new System.Windows.Forms.Label();
+            this.FlightModeLabel = new System.Windows.Forms.Label();
+            this.comPortComboBox = new System.Windows.Forms.ComboBox();
+            this.pwmMotor4Bar = new Telemetry.VerticalProgressBar();
+            this.pwmMotor3Bar = new Telemetry.VerticalProgressBar();
+            this.pwmMotor2Bar = new Telemetry.VerticalProgressBar();
+            this.pwmMotor1Bar = new Telemetry.VerticalProgressBar();
             this.SuspendLayout();
             // 
             // motorData
@@ -459,7 +461,7 @@ namespace Telemetry
             // 
             // PFD
             // 
-            this.PFD.Location = new System.Drawing.Point(32, 21);
+            this.PFD.Location = new System.Drawing.Point(32, 118);
             this.PFD.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
             this.PFD.Name = "PFD";
             this.PFD.ScrollGrace = 0D;
@@ -475,7 +477,7 @@ namespace Telemetry
             // connectButton
             // 
             this.connectButton.ForeColor = System.Drawing.Color.Black;
-            this.connectButton.Location = new System.Drawing.Point(1087, 559);
+            this.connectButton.Location = new System.Drawing.Point(321, 32);
             this.connectButton.Name = "connectButton";
             this.connectButton.Size = new System.Drawing.Size(114, 47);
             this.connectButton.TabIndex = 48;
@@ -483,72 +485,25 @@ namespace Telemetry
             this.connectButton.UseVisualStyleBackColor = true;
             this.connectButton.Click += new System.EventHandler(this.connectButton_Click);
             // 
-            // comPortBox
-            // 
-            this.comPortBox.Location = new System.Drawing.Point(1224, 567);
-            this.comPortBox.Name = "comPortBox";
-            this.comPortBox.Size = new System.Drawing.Size(217, 31);
-            this.comPortBox.TabIndex = 49;
-            // 
             // serialOutput
             // 
             this.serialOutput.AutoSize = true;
-            this.serialOutput.Location = new System.Drawing.Point(1224, 643);
+            this.serialOutput.Location = new System.Drawing.Point(597, 43);
             this.serialOutput.Name = "serialOutput";
-            this.serialOutput.Size = new System.Drawing.Size(232, 25);
+            this.serialOutput.Size = new System.Drawing.Size(194, 25);
             this.serialOutput.TabIndex = 50;
-            this.serialOutput.Text = "Data is displayed here!";
+            this.serialOutput.Text = "Raw incoming data";
             // 
             // button3
             // 
             this.button3.ForeColor = System.Drawing.Color.Black;
-            this.button3.Location = new System.Drawing.Point(1088, 632);
+            this.button3.Location = new System.Drawing.Point(446, 32);
             this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(113, 38);
+            this.button3.Size = new System.Drawing.Size(145, 47);
             this.button3.TabIndex = 53;
             this.button3.Text = "Disconnect";
             this.button3.UseVisualStyleBackColor = true;
             this.button3.Click += new System.EventHandler(this.button3_Click);
-            // 
-            // pwmMotor4Bar
-            // 
-            this.pwmMotor4Bar.Location = new System.Drawing.Point(1955, 283);
-            this.pwmMotor4Bar.Maximum = 114;
-            this.pwmMotor4Bar.Minimum = 62;
-            this.pwmMotor4Bar.Name = "pwmMotor4Bar";
-            this.pwmMotor4Bar.Size = new System.Drawing.Size(52, 189);
-            this.pwmMotor4Bar.TabIndex = 10;
-            this.pwmMotor4Bar.Value = 62;
-            // 
-            // pwmMotor3Bar
-            // 
-            this.pwmMotor3Bar.Location = new System.Drawing.Point(1876, 283);
-            this.pwmMotor3Bar.Maximum = 114;
-            this.pwmMotor3Bar.Minimum = 62;
-            this.pwmMotor3Bar.Name = "pwmMotor3Bar";
-            this.pwmMotor3Bar.Size = new System.Drawing.Size(52, 189);
-            this.pwmMotor3Bar.TabIndex = 8;
-            this.pwmMotor3Bar.Value = 62;
-            // 
-            // pwmMotor2Bar
-            // 
-            this.pwmMotor2Bar.Location = new System.Drawing.Point(1955, 21);
-            this.pwmMotor2Bar.Maximum = 114;
-            this.pwmMotor2Bar.Minimum = 62;
-            this.pwmMotor2Bar.Name = "pwmMotor2Bar";
-            this.pwmMotor2Bar.Size = new System.Drawing.Size(52, 189);
-            this.pwmMotor2Bar.TabIndex = 6;
-            this.pwmMotor2Bar.Value = 62;
-            // 
-            // pwmMotor1Bar
-            // 
-            this.pwmMotor1Bar.Location = new System.Drawing.Point(1876, 21);
-            this.pwmMotor1Bar.Maximum = 114;
-            this.pwmMotor1Bar.Minimum = 62;
-            this.pwmMotor1Bar.Name = "pwmMotor1Bar";
-            this.pwmMotor1Bar.Size = new System.Drawing.Size(52, 189);
-            this.pwmMotor1Bar.TabIndex = 4;
-            this.pwmMotor1Bar.Value = 62;
             // 
             // commandBox
             // 
@@ -610,15 +565,93 @@ namespace Telemetry
             this.label6.TabIndex = 12;
             this.label6.Text = "t(sec)";
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(37, 43);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(51, 25);
+            this.label1.TabIndex = 54;
+            this.label1.Text = "Port";
+            // 
+            // responsivenessDisplay
+            // 
+            this.responsivenessDisplay.AutoSize = true;
+            this.responsivenessDisplay.Location = new System.Drawing.Point(12, 1130);
+            this.responsivenessDisplay.Name = "responsivenessDisplay";
+            this.responsivenessDisplay.Size = new System.Drawing.Size(177, 25);
+            this.responsivenessDisplay.TabIndex = 55;
+            this.responsivenessDisplay.Text = "Responsiveness:";
+            // 
+            // FlightModeLabel
+            // 
+            this.FlightModeLabel.AutoSize = true;
+            this.FlightModeLabel.Location = new System.Drawing.Point(509, 1130);
+            this.FlightModeLabel.Name = "FlightModeLabel";
+            this.FlightModeLabel.Size = new System.Drawing.Size(134, 25);
+            this.FlightModeLabel.TabIndex = 56;
+            this.FlightModeLabel.Text = "Flight MODE";
+            // 
+            // comPortComboBox
+            // 
+            this.comPortComboBox.FormattingEnabled = true;
+            this.comPortComboBox.Location = new System.Drawing.Point(102, 35);
+            this.comPortComboBox.Name = "comPortComboBox";
+            this.comPortComboBox.Size = new System.Drawing.Size(198, 33);
+            this.comPortComboBox.TabIndex = 57;
+            // 
+            // pwmMotor4Bar
+            // 
+            this.pwmMotor4Bar.Location = new System.Drawing.Point(1955, 283);
+            this.pwmMotor4Bar.Maximum = 114;
+            this.pwmMotor4Bar.Minimum = 62;
+            this.pwmMotor4Bar.Name = "pwmMotor4Bar";
+            this.pwmMotor4Bar.Size = new System.Drawing.Size(52, 189);
+            this.pwmMotor4Bar.TabIndex = 10;
+            this.pwmMotor4Bar.Value = 62;
+            // 
+            // pwmMotor3Bar
+            // 
+            this.pwmMotor3Bar.Location = new System.Drawing.Point(1876, 283);
+            this.pwmMotor3Bar.Maximum = 114;
+            this.pwmMotor3Bar.Minimum = 62;
+            this.pwmMotor3Bar.Name = "pwmMotor3Bar";
+            this.pwmMotor3Bar.Size = new System.Drawing.Size(52, 189);
+            this.pwmMotor3Bar.TabIndex = 8;
+            this.pwmMotor3Bar.Value = 62;
+            // 
+            // pwmMotor2Bar
+            // 
+            this.pwmMotor2Bar.Location = new System.Drawing.Point(1955, 21);
+            this.pwmMotor2Bar.Maximum = 114;
+            this.pwmMotor2Bar.Minimum = 62;
+            this.pwmMotor2Bar.Name = "pwmMotor2Bar";
+            this.pwmMotor2Bar.Size = new System.Drawing.Size(52, 189);
+            this.pwmMotor2Bar.TabIndex = 6;
+            this.pwmMotor2Bar.Value = 62;
+            // 
+            // pwmMotor1Bar
+            // 
+            this.pwmMotor1Bar.Location = new System.Drawing.Point(1876, 21);
+            this.pwmMotor1Bar.Maximum = 114;
+            this.pwmMotor1Bar.Minimum = 62;
+            this.pwmMotor1Bar.Name = "pwmMotor1Bar";
+            this.pwmMotor1Bar.Size = new System.Drawing.Size(52, 189);
+            this.pwmMotor1Bar.TabIndex = 4;
+            this.pwmMotor1Bar.Value = 62;
+            // 
             // telemetryWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(12F, 25F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.ClientSize = new System.Drawing.Size(2396, 1268);
+            this.Controls.Add(this.comPortComboBox);
+            this.Controls.Add(this.FlightModeLabel);
+            this.Controls.Add(this.responsivenessDisplay);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.button3);
             this.Controls.Add(this.serialOutput);
-            this.Controls.Add(this.comPortBox);
             this.Controls.Add(this.connectButton);
             this.Controls.Add(this.PFD);
             this.Controls.Add(this.label23);
@@ -722,7 +755,6 @@ namespace Telemetry
         private System.Windows.Forms.Label label23;
         private ZedGraph.ZedGraphControl PFD;
         private System.Windows.Forms.Button connectButton;
-        private System.Windows.Forms.TextBox comPortBox;
         private System.Windows.Forms.Label serialOutput;
         private System.Windows.Forms.Button button3;
 
@@ -739,6 +771,10 @@ namespace Telemetry
         private System.Windows.Forms.TextBox fileDirectory;
         private System.Windows.Forms.Label responsivenessLabel;
         private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label responsivenessDisplay;
+        private System.Windows.Forms.Label FlightModeLabel;
+        private System.Windows.Forms.ComboBox comPortComboBox;
     }
 }
 

@@ -40,6 +40,8 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Management.Instrumentation" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -93,6 +95,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="bin\Debug\longbeep.wav" />
+    <None Include="bin\Debug\shortbeep.wav" />
+    <None Include="bin\Debug\activateEngine.wav" />
     <Content Include="compass.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

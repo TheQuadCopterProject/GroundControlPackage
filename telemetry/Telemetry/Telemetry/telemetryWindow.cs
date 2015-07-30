@@ -13,6 +13,8 @@ using ZedGraph;
 using System.Threading;
 using System.Diagnostics;
 using System.Management;
+using System.Management.Instrumentation;
+using System.Media;
 
 namespace Telemetry
 {
@@ -21,6 +23,10 @@ namespace Telemetry
         #region variables
         string[] serialValues;
         double currentTime = 0;
+
+        int longBeepCount = 0;
+        int shortBeepCount = 1;
+        int activateEngineSoundCount = 0;
 
         PointPairList pwmMotor1 = new PointPairList();
         PointPairList pwmMotor2 = new PointPairList();
@@ -82,6 +88,17 @@ namespace Telemetry
             {
                 MessageBox.Show("No Joystick! Please restart after connecting.");
             }
+
+            #region getSerialPortNames
+
+            string[] ports = SerialPort.GetPortNames();
+
+            foreach (string port in ports)
+            {
+                comPortComboBox.Items.Add(port);
+            }
+
+            #endregion
         }
 
         private void loadMotorData()
@@ -310,6 +327,83 @@ namespace Telemetry
             {
 
             }
+
+            #region flightModeDisplay
+
+            if (flightMode == 2)
+            {
+                FlightModeLabel.Text = "Emergency Shutdown";
+                FlightModeLabel.ForeColor = System.Drawing.Color.Red;
+
+                if (longBeepCount == 0)
+                {
+                    SoundPlayer longbeep = new SoundPlayer("longbeep.wav");
+                    longbeep.Play();
+                    longBeepCount++;
+                }
+
+                shortBeepCount = 0;
+                activateEngineSoundCount = 0;
+            }
+
+            if (flightMode == 0)
+            {
+                FlightModeLabel.Text = "Engines OFF";
+                FlightModeLabel.ForeColor = System.Drawing.Color.LightGray;
+                longBeepCount = 0;
+                activateEngineSoundCount = 0;
+
+                if (shortBeepCount == 0)
+                {
+                    SoundPlayer shortbeep = new SoundPlayer("shortbeep.wav");
+                    shortbeep.Play();
+                    shortBeepCount++;
+                }
+            }
+
+            if (flightMode == 1)
+            {
+                if (m1ToWrite <= 62 && m2ToWrite <= 62 && m3ToWrite <= 62 && m4ToWrite <= 62)
+                {
+                    FlightModeLabel.Text = "IDLE";
+                    FlightModeLabel.ForeColor = System.Drawing.Color.Blue;
+                }
+
+                if (m1ToWrite > 62 || m2ToWrite > 62 || m3ToWrite > 62 || m4ToWrite > 62)
+                {
+                    FlightModeLabel.Text = "Low Power Rotation";
+                    FlightModeLabel.ForeColor = System.Drawing.Color.Lime;
+                }
+
+                if (m1ToWrite > 71 || m2ToWrite > 71 || m3ToWrite > 71 || m4ToWrite > 71)
+                {
+                    FlightModeLabel.Text = "Low Power Rotation";
+                    FlightModeLabel.ForeColor = System.Drawing.Color.GreenYellow;
+                }
+
+                if (m1ToWrite > 80 || m2ToWrite > 80 || m3ToWrite > 80 || m4ToWrite > 80)
+                {
+                    FlightModeLabel.Text = "In Flight";
+                    FlightModeLabel.ForeColor = System.Drawing.Color.Yellow;
+                }
+
+                if (m1ToWrite > 112 || m2ToWrite > 112 || m3ToWrite > 112 || m4ToWrite > 112)
+                {
+                    FlightModeLabel.Text = "Max Throttle";
+                    FlightModeLabel.ForeColor = System.Drawing.Color.Orange;
+                }
+
+                if (activateEngineSoundCount == 0)
+                {
+                    SoundPlayer activateEngineSound = new SoundPlayer("activateEngine.wav");
+                    activateEngineSound.Play();
+                    activateEngineSoundCount++;
+                }
+
+                longBeepCount = 0;
+                shortBeepCount = 0;
+            }
+            #endregion
         }
 
         private void readValues()
@@ -389,7 +483,7 @@ namespace Telemetry
         private void connectButton_Click(object sender, EventArgs e)
         {
             Debug.Print("connectButton_CLick");
-            SerialConnectButton_Click(sender, e, comPortBox.Text);
+            SerialConnectButton_Click(sender, e, comPortComboBox.Text);
             updateTimer.Enabled = true;
             updateTimer.Start();
         }
@@ -538,26 +632,30 @@ namespace Telemetry
                             flightMode = 1;
                         }
 
-                        if (i == 5)
+                        if (i == 4)
                         {
-                            responsiveness = responsiveness - 100;
+                            if (responsiveness > 2000)
+                            {
+                                responsiveness = responsiveness - 100;
+                            }
                         }
 
-                        if (i == 6)
+                        if (i == 5)
                         {
-                            responsiveness = responsiveness + 100;
+                            if (responsiveness < 10000)
+                            {
+                                responsiveness = responsiveness + 100;
+                            }
                         }
                     }
                 }
                 #endregion
 
-                int checksum = m1ToWrite + m2ToWrite + m3ToWrite + m4ToWrite;
-                messageToSend = m1ToWrite.ToString() + " " + m2ToWrite.ToString() + " " + m3ToWrite.ToString() + " " + m4ToWrite.ToString() + " " + checksum.ToString();
-                
+                messageToSend = m1ToWrite.ToString() + " " + m2ToWrite.ToString() + " " + m3ToWrite.ToString() + " " + m4ToWrite.ToString();
 
                 commandBox.Text = messageToSend;
 
-                responsivenessLabel.Text = "Responsiveness: " + responsiveness.ToString();
+                responsivenessDisplay.Text = "Responsiveness: " + responsiveness.ToString();
             }
             catch
             {
@@ -610,7 +708,7 @@ namespace Telemetry
                 mySerialPort.DataReceived += new SerialDataReceivedEventHandler(DataReceivedHandler);
 
                 mySerialPort.Open();
-                //ComPortBox.ReadOnly = true;
+                //comPortComboBox.ReadOnly = true;
                 fileDirectory.ReadOnly = true;
                 SerialConnectButton.Enabled = false;
 
