@@ -91,6 +91,7 @@ namespace Telemetry
             this.pwmMotor3Bar = new Telemetry.VerticalProgressBar();
             this.pwmMotor2Bar = new Telemetry.VerticalProgressBar();
             this.pwmMotor1Bar = new Telemetry.VerticalProgressBar();
+            this.rawOutgoingData = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // motorData
@@ -640,12 +641,22 @@ namespace Telemetry
             this.pwmMotor1Bar.TabIndex = 4;
             this.pwmMotor1Bar.Value = 62;
             // 
+            // rawOutgoingData
+            // 
+            this.rawOutgoingData.AutoSize = true;
+            this.rawOutgoingData.Location = new System.Drawing.Point(992, 1130);
+            this.rawOutgoingData.Name = "rawOutgoingData";
+            this.rawOutgoingData.Size = new System.Drawing.Size(198, 25);
+            this.rawOutgoingData.TabIndex = 58;
+            this.rawOutgoingData.Text = "Raw Outgoing Data";
+            // 
             // telemetryWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(12F, 25F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.ClientSize = new System.Drawing.Size(2396, 1268);
+            this.Controls.Add(this.rawOutgoingData);
             this.Controls.Add(this.comPortComboBox);
             this.Controls.Add(this.FlightModeLabel);
             this.Controls.Add(this.responsivenessDisplay);
@@ -775,6 +786,7 @@ namespace Telemetry
         private System.Windows.Forms.Label responsivenessDisplay;
         private System.Windows.Forms.Label FlightModeLabel;
         private System.Windows.Forms.ComboBox comPortComboBox;
+        private System.Windows.Forms.Label rawOutgoingData;
     }
 }
 
